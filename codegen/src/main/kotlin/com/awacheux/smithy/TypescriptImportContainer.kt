@@ -20,21 +20,26 @@ class TypescriptImportContainer: ImportContainer {
      * If the symbol does not define a file, this method will do nothing.
      */
     override fun importSymbol(symbol: Symbol, alias: String?) {
-        val filename = symbol.definitionFile ?: return
-        if(filename.isEmpty()) {
+        val module = if (symbol.definitionFile.isNotEmpty()) {
+            "./${symbol.definitionFile}"
+        } else if(symbol.properties.containsKey("from")) {
+            symbol.properties["from"].toString()
+        } else {
+            ""
+        }
+
+        if(module.isEmpty()) {
             return
         }
 
-        println("Adding import to $filename")
-
-        val importForFile = imports.computeIfAbsent(filename) { mutableSetOf() }
+        val importForFile = imports.computeIfAbsent(module) { mutableSetOf() }
         importForFile.add(Pair(symbol.name, alias))
     }
 
     override fun toString(): String {
         val result = StringBuilder()
 
-        imports.forEach { (filename, importList) ->
+        imports.forEach { (module, importList) ->
 
             val importContent = importList.joinToString(", ") { (type, alias) ->
                 if (alias != null && alias != type) {
@@ -44,7 +49,7 @@ class TypescriptImportContainer: ImportContainer {
                 }
             }
 
-            result.appendLine("import { $importContent } from \"./$filename\"")
+            result.appendLine("import { $importContent } from \"$module\"")
         }
 
         return result.toString()

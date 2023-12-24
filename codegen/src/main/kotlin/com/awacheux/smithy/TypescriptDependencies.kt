@@ -1,5 +1,6 @@
 package com.awacheux.smithy
 
+import software.amazon.smithy.codegen.core.Symbol
 import software.amazon.smithy.codegen.core.SymbolDependency
 import software.amazon.smithy.codegen.core.SymbolDependencyContainer
 
@@ -24,4 +25,7 @@ enum class TypescriptDependencies(dependencyType: String, packageName: String, v
      */
     override fun getDependencies(): MutableList<SymbolDependency> = mutableListOf(dependency)
 
+    companion object {
+        fun getZodZSymbol(): Symbol = Symbol.builder().name("z").addDependency(ZOD).putProperty("from", "zod").build()
+    }
 }

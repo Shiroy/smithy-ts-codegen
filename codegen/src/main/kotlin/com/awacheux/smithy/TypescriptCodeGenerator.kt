@@ -2,7 +2,9 @@ package com.awacheux.smithy
 
 import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.codegen.core.WriterDelegator
-import software.amazon.smithy.model.shapes.*
+import software.amazon.smithy.model.shapes.Shape
+import software.amazon.smithy.model.shapes.ShapeVisitor
+import software.amazon.smithy.model.shapes.StringShape
 import software.amazon.smithy.model.traits.LengthTrait
 import software.amazon.smithy.model.traits.PatternTrait
 
@@ -19,14 +21,14 @@ class TypescriptCodeGenerator(
 
         if(symbol.definitionFile.isNotEmpty()) {
             writerDelegator.useFileWriter(symbol.definitionFile) { writer ->
-                writer.addDependency(TypescriptDependencies.ZOD)
                 val validatorName = "${symbol.name}Validator"
-                writer.writeInline("export const \$L = z.string()", validatorName)
+                val z = TypescriptDependencies.getZodZSymbol()
+                writer.writeInline("export const \$L = \$T.string()", validatorName, z)
                 handleLengthTrait(shape, writer)
                 handlePatternTrait(shape, writer)
                 writer.writeInline(";")
                 writer.ensureNewline()
-                writer.write("export type \$L = z.inferType<typeof \$L>;", symbol.name, validatorName)
+                writer.write("export type \$L = \$T.inferType<typeof \$L>;", symbol.name, z, validatorName)
             }
         }
     }
