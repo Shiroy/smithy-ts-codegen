@@ -2,30 +2,25 @@ package com.awacheux.smithy
 
 import software.amazon.smithy.build.PluginContext
 import software.amazon.smithy.build.SmithyBuildPlugin
-import software.amazon.smithy.codegen.core.directed.CodegenDirector
+import software.amazon.smithy.model.shapes.ServiceShape
 
 class CodegenPlugin : SmithyBuildPlugin{
     override fun getName(): String = "smithy-ts-codegen"
 
     override fun execute(context: PluginContext) {
-        val runner = CodegenDirector<TypescriptSymbolWriter, TypescriptIntegration, GenerationContext, TypescriptSettings>()
-
-        runner.directedCodegen(TypescriptDirectedCodegen())
-
-        runner.integrationClass(TypescriptIntegration::class.java)
-        runner.fileManifest(context.fileManifest)
-        runner.model(context.model)
-
+        //val runner = CodegenDirector<TypescriptSymbolWriter, TypescriptIntegration, GenerationContext, TypescriptSettings>()
         val settings = TypescriptSettings.from(context.settings)
 
-        runner.settings(settings)
+        val model = context.model
+        val serviceShape = model.expectShape(settings.service, ServiceShape::class.java)
 
-        runner.service(settings.service)
+        val codeGenerator = TypescriptGenerator(
+            TypescriptSymbolBuilder(model, serviceShape),
+            context.fileManifest,
+            settings,
+            model
+        )
 
-        runner.performDefaultCodegenTransforms()
-
-        runner.createDedicatedInputsAndOutputs()
-
-        runner.run()
+        codeGenerator.run()
     }
 }
