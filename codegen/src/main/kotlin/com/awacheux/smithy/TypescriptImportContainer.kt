@@ -2,8 +2,9 @@ package com.awacheux.smithy
 
 import software.amazon.smithy.codegen.core.ImportContainer
 import software.amazon.smithy.codegen.core.Symbol
+import kotlin.io.path.Path
 
-class TypescriptImportContainer: ImportContainer {
+class TypescriptImportContainer(currentFilePath: String): ImportContainer {
 
     // This maps stores the import statements that will be generated.
     // The key is the filename that will be imported, and the value is a pair of the symbol name and the alias.
@@ -12,6 +13,7 @@ class TypescriptImportContainer: ImportContainer {
     // If we need to import the symbol "CreateLedgerRequest" from the file "CreateLedgerRequest.ts" with an alias of "CreateLedgerRequestAlias", we would add the following entry:
     // "CreateLedgerRequest.ts" -> Pair("CreateLedgerRequest", "CreateLedgerRequestAlias")
     private val imports = mutableMapOf<String, MutableSet<Pair<String, String?>>>()
+    private val currentPath = Path(currentFilePath)
 
     /**
      * Imports a symbol from a file. If an alias is provided, the symbol will be imported with an alias.
@@ -21,7 +23,10 @@ class TypescriptImportContainer: ImportContainer {
      */
     override fun importSymbol(symbol: Symbol, alias: String?) {
         val module = if (symbol.definitionFile.isNotEmpty()) {
-            "./${symbol.definitionFile}"
+            val pathToImport = Path(symbol.definitionFile)
+            val relativePath = currentPath.relativize(pathToImport)
+
+            relativePath.toString()
         } else if(symbol.properties.containsKey("from")) {
             symbol.properties["from"].toString()
         } else {

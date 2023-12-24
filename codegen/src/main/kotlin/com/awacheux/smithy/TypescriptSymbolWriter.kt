@@ -2,8 +2,8 @@ package com.awacheux.smithy
 
 import software.amazon.smithy.codegen.core.SymbolWriter
 
-class TypescriptSymbolWriter() : SymbolWriter<TypescriptSymbolWriter, TypescriptImportContainer>(
-    TypescriptImportContainer()
+class TypescriptSymbolWriter(filename: String) : SymbolWriter<TypescriptSymbolWriter, TypescriptImportContainer>(
+    TypescriptImportContainer(filename)
 ) {
     companion object Factory : SymbolWriter.Factory<TypescriptSymbolWriter> {
         /**
@@ -14,10 +14,10 @@ class TypescriptSymbolWriter() : SymbolWriter<TypescriptSymbolWriter, Typescript
          * @param namespace Non-null namespace associated with the file (possibly empty string).
          * @return Returns the created writer of type `W`.
          */
-        override fun apply(filename: String?, namespace: String?): TypescriptSymbolWriter {
+        override fun apply(filename: String, namespace: String?): TypescriptSymbolWriter {
             println("New writer for file : $filename")
 
-            return TypescriptSymbolWriter()
+            return TypescriptSymbolWriter(filename)
         }
 
     }
