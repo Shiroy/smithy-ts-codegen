@@ -1,37 +1,36 @@
 package com.awacheux.smithy
 
-import software.amazon.smithy.codegen.core.directed.GenerateStructureDirective
-import software.amazon.smithy.model.traits.RequiredTrait
+import software.amazon.smithy.codegen.core.WriterDelegator
+import software.amazon.smithy.model.shapes.StructureShape
 
-class StructureGeneration(private val directive: GenerateStructureDirective<GenerationContext, TypescriptSettings>) {
-
-    private val shape = directive.shape()
-    private val symbolProvider = directive.symbolProvider()
+class StructureGeneration(
+    shape: StructureShape,
+    zodElementBuilder: ZodElementBuilder,
+    private val writerDelegator: WriterDelegator<TypescriptSymbolWriter>
+) {
+    private val zodElement = shape.accept(zodElementBuilder)
 
     fun render() {
-        val structureSymbol = directive.symbol()
+        val structureSymbol = zodElement.getValidatorSymbol()
+        require(structureSymbol.definitionFile.isNotEmpty()) { "Structure symbols must have a definition file" }
 
-        directive.context().writerDelegator().useFileWriter(structureSymbol.definitionFile) { writer ->
-            writer.openBlock("export interface \$L {", structureSymbol)
-            writer.call {
-                generateMembers(writer)
-            }
-            writer.closeBlock("}")
-        }
-    }
+        writerDelegator.useFileWriter(structureSymbol.definitionFile) { writer ->
+            val validatorName = zodElement.validatorName
+            requireNotNull(validatorName) { "Structure symbols must have a validator name" }
 
-    private fun generateMembers(writer: TypescriptSymbolWriter) {
-        shape.members().forEach { member ->
-            val symbol = symbolProvider.toSymbol(member)
+            writer.writeInline(
+                "export const #L = ",
+                validatorName
+            )
 
-            val required = if (member.hasTrait(RequiredTrait::class.java)) {
-                ""
-            } else {
-                "?"
-            }
+            zodElement.renderDefinition(writer)
 
-            writer.write("\$L: \$T\$L", member.memberName, symbol, required)
-
+            writer.write(
+                "export type #L = #T.infer<typeof #L>",
+                zodElement.shapeName!!,
+                TypescriptDependencies.getZodZSymbol(),
+                validatorName
+            )
         }
     }
 }

@@ -8,14 +8,13 @@ class CodegenPlugin : SmithyBuildPlugin{
     override fun getName(): String = "smithy-ts-codegen"
 
     override fun execute(context: PluginContext) {
-        //val runner = CodegenDirector<TypescriptSymbolWriter, TypescriptIntegration, GenerationContext, TypescriptSettings>()
         val settings = TypescriptSettings.from(context.settings)
 
         val model = context.model
         val serviceShape = model.expectShape(settings.service, ServiceShape::class.java)
 
         val codeGenerator = TypescriptGenerator(
-            TypescriptSymbolBuilder(model, serviceShape),
+            ZodElementBuilder(model, serviceShape),
             context.fileManifest,
             settings,
             model

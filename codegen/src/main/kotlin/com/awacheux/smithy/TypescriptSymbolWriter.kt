@@ -5,6 +5,9 @@ import software.amazon.smithy.codegen.core.SymbolWriter
 class TypescriptSymbolWriter(filename: String) : SymbolWriter<TypescriptSymbolWriter, TypescriptImportContainer>(
     TypescriptImportContainer(filename)
 ) {
+    init {
+        expressionStart = '#'
+    }
     companion object Factory : SymbolWriter.Factory<TypescriptSymbolWriter> {
         /**
          * Creates a `SymbolWriter` of type `W` for the given

@@ -1,7 +1,6 @@
 package com.awacheux.smithy
 
 import software.amazon.smithy.build.FileManifest
-import software.amazon.smithy.codegen.core.SymbolProvider
 import software.amazon.smithy.codegen.core.WriterDelegator
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.neighbor.Walker
@@ -15,12 +14,12 @@ private typealias Transform = (model: Model, transform: ModelTransformer) -> Mod
  *
  * It manages resources such the symbol provider, writer, the file delegator
  *
- * It also applies the different transformations to the model before generating the code. Transformations include steps such as:
+ * It also applies the different transformation steps such as:
  * - flattening the model by removing the mixins
  * - generating dedicated structures for operations' inputs and outputs
  */
 class TypescriptGenerator(
-    symbolProvider: SymbolProvider,
+    zodElementBuilder: ZodElementBuilder,
     fileManifest: FileManifest,
     private val settings: TypescriptSettings,
     private var model: Model
@@ -28,10 +27,10 @@ class TypescriptGenerator(
     private val transforms = mutableListOf<Transform>()
     private val writerDelegator = WriterDelegator(
         fileManifest,
-        symbolProvider,
+        zodElementBuilder,
         TypescriptSymbolWriter
     )
-    private val codeGenerator = TypescriptCodeGenerator(symbolProvider, writerDelegator)
+    private val codeGenerator = TypescriptCodeGenerator(zodElementBuilder, writerDelegator)
     fun run() {
         simplifyModelBeforeCodegen()
         createDedicatedInputsAndOutputs()

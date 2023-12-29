@@ -27,6 +27,7 @@ resource Forecast {
 
 // "pattern" is a trait.
 @pattern("^[A-Za-z0-9 ]+$")
+@length(min: 2, max: 64)
 string CityId
 
 @readonly
